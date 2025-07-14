@@ -79,13 +79,72 @@ func (mm *MigrationManager) getMigrations() []Migration {
 				INDEX idx_email (email)
 			)`,
 		},
+		{
+			ID:          2,
+			Name:        "002_create_crawl_results_table",
+			Description: "Create crawl_results table with user_id",
+			SQL: `CREATE TABLE IF NOT EXISTS crawl_results (
+				id INT AUTO_INCREMENT PRIMARY KEY,
+				user_id INT NOT NULL,
+				url VARCHAR(500) NOT NULL,
+				html_version VARCHAR(50),
+				title VARCHAR(500),
+				headings JSON,
+				internal_links INT DEFAULT 0,
+				external_links INT DEFAULT 0,
+				inaccessible_links INT DEFAULT 0,
+				has_login_form BOOLEAN DEFAULT FALSE,
+				status VARCHAR(50) DEFAULT 'pending',
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+				INDEX idx_user_id (user_id),
+				INDEX idx_status (status),
+				INDEX idx_created_at (created_at),
+				UNIQUE KEY unique_user_url (user_id, url)
+			)`,
+		},
+		{
+			ID:          3,
+			Name:        "003_create_crawl_links_table",
+			Description: "Create crawl_links table for storing link details",
+			SQL: `CREATE TABLE IF NOT EXISTS crawl_links (
+				id INT AUTO_INCREMENT PRIMARY KEY,
+				crawl_result_id INT NOT NULL,
+				link_url VARCHAR(1000) NOT NULL,
+				link_text VARCHAR(500),
+				link_type ENUM('internal', 'external') NOT NULL,
+				status_code INT,
+				is_accessible BOOLEAN DEFAULT TRUE,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY (crawl_result_id) REFERENCES crawl_results(id) ON DELETE CASCADE,
+				INDEX idx_crawl_result_id (crawl_result_id),
+				INDEX idx_link_type (link_type),
+				INDEX idx_is_accessible (is_accessible)
+			)`,
+		},
+		{
+			ID:          4,
+			Name:        "004_create_crawl_headings_table",
+			Description: "Create crawl_headings table for storing heading details",
+			SQL: `CREATE TABLE IF NOT EXISTS crawl_headings (
+				id INT AUTO_INCREMENT PRIMARY KEY,
+				crawl_result_id INT NOT NULL,
+				heading_level VARCHAR(10) NOT NULL,
+				heading_text VARCHAR(500),
+				heading_order INT,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY (crawl_result_id) REFERENCES crawl_results(id) ON DELETE CASCADE,
+				INDEX idx_crawl_result_id (crawl_result_id),
+				INDEX idx_heading_level (heading_level)
+			)`,
+		},
 	}
 }
 
 // runPendingMigrations runs all migrations that haven't been applied yet
 func (mm *MigrationManager) runPendingMigrations(migrations []Migration) error {
 	for _, migration := range migrations {
-		// Check if migration has already been applied
 		applied, err := mm.isMigrationApplied(migration.Name)
 		if err != nil {
 			return fmt.Errorf("failed to check migration status: %w", err)
@@ -96,28 +155,23 @@ func (mm *MigrationManager) runPendingMigrations(migrations []Migration) error {
 			continue
 		}
 
-		// Run the migration
 		log.Printf("Applying migration: %s - %s", migration.Name, migration.Description)
 		
-		// Start transaction
 		tx, err := mm.conn.DB.Begin()
 		if err != nil {
 			return fmt.Errorf("failed to begin transaction: %w", err)
 		}
 
-		// Execute migration SQL
 		if _, err := tx.Exec(migration.SQL); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to execute migration %s: %w", migration.Name, err)
 		}
 
-		// Record migration as applied
 		if err := mm.recordMigrationApplied(tx, migration); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("failed to record migration %s: %w", migration.Name, err)
 		}
 
-		// Commit transaction
 		if err := tx.Commit(); err != nil {
 			return fmt.Errorf("failed to commit migration %s: %w", migration.Name, err)
 		}

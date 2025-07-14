@@ -41,6 +41,9 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	// Health check endpoint (no auth required)
 	router.GET("/ping", r.handler.HealthCheck)
 	
+	// Migration status endpoint (no auth required)
+	router.GET("/api/migrations/status", r.handler.GetMigrationStatus)
+
 	// Public auth routes (no auth required)
 	router.POST("/api/auth/register", r.handler.Register)
 	router.POST("/api/auth/login", r.handler.Login)
@@ -48,6 +51,20 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	// Protected routes
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware(r.authService))
+
+	// Crawl routes
+	protected.POST("/crawl", r.handler.SubmitCrawl)
+	protected.GET("/results", r.handler.GetResults)
+	protected.GET("/results/:id", r.handler.GetResultByID)
+	protected.GET("/results/:id/links", r.handler.GetLinksByID)
+	protected.GET("/results/:id/headings", r.handler.GetHeadingsByID)
+
+	// Bulk action routes
+	protected.POST("/bulk/rerun", r.handler.BulkRerun)
+	protected.DELETE("/bulk/delete", r.handler.BulkDelete)
+
+	// Control routes
+	protected.POST("/stop/:id", r.handler.StopCrawl)
 
 	// User profile route
 	protected.GET("/profile", r.handler.GetProfile)
