@@ -61,6 +61,10 @@ class AuthService {
       throw new Error(data.message || "Registration failed");
     }
 
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
     return data;
   }
 
