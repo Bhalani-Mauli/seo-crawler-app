@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (userData: any) => {
     try {
-      return await authService.register(userData);
+      await authService.register(userData);
     } catch (error) {
       throw error;
     }
