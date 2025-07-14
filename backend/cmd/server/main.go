@@ -8,6 +8,7 @@ import (
 	"github.com/seo-crawler-app/internal/config"
 	"github.com/seo-crawler-app/internal/database"
 	"github.com/seo-crawler-app/internal/services"
+	"github.com/seo-crawler-app/pkg/crawler"
 )
 
 func main() {
@@ -24,12 +25,16 @@ func main() {
 		log.Fatal("Failed to initialize database migrations:", err)
 	}
 
+	crawlRepo := database.NewCrawlRepository(dbConn)
 	userRepo := database.NewUserRepository(dbConn.DB)
 
+	crawlerService := crawler.NewCrawler()
+
+	crawlService := services.NewCrawlService(crawlRepo, crawlerService)
 	authService := services.NewAuthService(userRepo, cfg.JWT.Secret)
 
 	authHandler := api.NewAuthHandler(authService)
-	handler := api.NewHandler(authHandler, migrationManager)
+	handler := api.NewHandler(crawlService, authHandler, migrationManager)
 
 	router := api.NewRouter(handler, cfg, authService, migrationManager)
 	app := router.SetupRoutes()
