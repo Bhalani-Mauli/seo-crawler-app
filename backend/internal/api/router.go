@@ -3,9 +3,11 @@ package api
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/seo-crawler-checker/internal/config"
-	"github.com/seo-crawler-checker/internal/database"
-)		
+	"github.com/seo-crawler-app/internal/config"
+	"github.com/seo-crawler-app/internal/middleware"
+	"github.com/seo-crawler-app/internal/services"
+	"github.com/seo-crawler-app/internal/database"
+)	
 
 // Router sets up the HTTP routes
 type Router struct {
@@ -39,26 +41,12 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	// Health check endpoint (no auth required)
 	router.GET("/ping", r.handler.HealthCheck)
 	
-	// Migration status endpoint (no auth required)
-	router.GET("/api/migrations/status", r.handler.GetMigrationStatus)
-
 	// Public auth routes (no auth required)
 	router.POST("/api/auth/register", r.handler.Register)
-	router.POST("/api/auth/login", r.handler.Login)
 
 	// Protected routes
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware(r.authService))
-
-	// Bulk action routes
-	protected.POST("/bulk/rerun", r.handler.BulkRerun)
-	protected.DELETE("/bulk/delete", r.handler.BulkDelete)
-
-	// Control routes
-	protected.POST("/stop/:id", r.handler.StopCrawl)
-
-	// User profile route
-	protected.GET("/profile", r.handler.GetProfile)
 
 	router.OPTIONS("/*path", func(c *gin.Context) {
 	    c.Status(204)

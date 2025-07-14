@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/seo-crawler-checker/internal/models"
+	"github.com/seo-crawler-app/internal/models"
 )
 
 // UserRepository handles user-related database operations

@@ -2,10 +2,12 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"github.com/seo-crawler-checker/internal/config"
-	"github.com/seo-crawler-checker/internal/database"
+	"log"
+
+	"github.com/seo-crawler-app/internal/api"
+	"github.com/seo-crawler-app/internal/config"
+	"github.com/seo-crawler-app/internal/database"
+	"github.com/seo-crawler-app/internal/services"
 )
 
 func main() {
@@ -22,13 +24,18 @@ func main() {
 		log.Fatal("Failed to initialize database migrations:", err)
 	}
 
-	r := gin.Default()
+	userRepo := database.NewUserRepository(dbConn.DB)
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	authService := services.NewAuthService(userRepo, cfg.JWT.Secret)
 
-	r.Run(":8080") // Start server on port 8080
+	authHandler := api.NewAuthHandler(authService)
+	handler := api.NewHandler(authHandler, migrationManager)
+
+	router := api.NewRouter(handler, cfg, authService, migrationManager)
+	app := router.SetupRoutes()
+
+	log.Printf("Server starting on :%s", cfg.Server.Port)
+	if err := app.Run(":" + cfg.Server.Port); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
