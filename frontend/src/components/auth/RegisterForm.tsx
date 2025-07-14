@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { Button } from "../ui/button";
+import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
 const registerSchema = z
@@ -22,13 +22,7 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-interface RegisterFormProps {
-  onSwitchToLogin?: () => void;
-}
-
-export const RegisterForm: React.FC<RegisterFormProps> = ({
-  onSwitchToLogin,
-}) => {
+export const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { register: registerUser } = useAuth();
@@ -164,21 +158,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-gray-600">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-blue-600 hover:text-blue-500 font-medium"
-              onClick={(e) => {
-                if (onSwitchToLogin) {
-                  e.preventDefault();
-                  onSwitchToLogin();
-                }
-              }}
-            >
-              Sign in
-            </Link>
-          </p>
+          <p className="text-gray-600"></p>
         </div>
       </div>
     </div>

@@ -48,7 +48,7 @@ export const DashboardPage: React.FC = () => {
       <div className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Header />
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-0 sm:p-6 mb-6">
             <UrlForm onSubmit={handleUrlSubmit} loading={loading} />
             <MessageDisplay message={message} />
             {isPolling && (
