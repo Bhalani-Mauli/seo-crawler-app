@@ -43,10 +43,14 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	
 	// Public auth routes (no auth required)
 	router.POST("/api/auth/register", r.handler.Register)
+	router.POST("/api/auth/login", r.handler.Login)
 
 	// Protected routes
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware(r.authService))
+
+	// User profile route
+	protected.GET("/profile", r.handler.GetProfile)
 
 	router.OPTIONS("/*path", func(c *gin.Context) {
 	    c.Status(204)

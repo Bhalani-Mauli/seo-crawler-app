@@ -11,6 +11,8 @@ import (
 type Handler interface {
 	HealthCheck(c *gin.Context)
 	Register(c *gin.Context)
+	Login(c *gin.Context)
+	GetProfile(c *gin.Context)
 }
 
 // handler implements the Handler interface
@@ -38,4 +40,14 @@ func (h *handler) HealthCheck(c *gin.Context) {
 // Register handles user registration
 func (h *handler) Register(c *gin.Context) {
 	h.authHandler.Register(c)
+}
+
+// Login handles user login
+func (h *handler) Login(c *gin.Context) {
+	h.authHandler.Login(c)
+}
+
+// GetProfile returns the current user's profile
+func (h *handler) GetProfile(c *gin.Context) {
+	h.authHandler.GetProfile(c)
 }
