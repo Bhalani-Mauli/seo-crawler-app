@@ -11,12 +11,13 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
+    "@tanstack/react-table": "^8.21.3",
     "clsx": "^2.1.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.60.0",
-    "tailwind-merge": "^2.5.4",
     "react-router-dom": "^7.6.3",
+    "tailwind-merge": "^2.5.4",
     "zod": "^4.0.5"
   },
   "devDependencies": {
